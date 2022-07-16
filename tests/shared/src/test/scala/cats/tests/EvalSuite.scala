@@ -122,18 +122,18 @@ class EvalSuite extends CatsSuite {
     assert(inc(Eval.now(0), 1000000).value == 1000000)
   }
   test("Eval can foldM without blowing up the stack") {
-    def replaceValues(obj: Any): Any =
+    def replaceValues(obj: Any): Eval[Any] =
       obj match {
         case v: Vector[Any] =>
-          replaceVectorValues(v)
+          Eval.defer(replaceVectorValues(v))
         case _ =>
-          "*"
+         Eval.now("*")
       }
-    def replaceVectorValues(vector: Vector[Any]): Vector[Any] =
+    def replaceVectorValues(vector: Vector[Any]): Eval[Vector[Any]] =
       vector.foldM[Eval, Vector[Any]](Vector.empty[Any]) {
         case (replacedVector, obj) =>
           Eval.later(replacedVector :+ replaceValues(obj))
-      }.value
+      }
 
     def deepVector(depth: Int): Vector[Any] = {
       var i = depth
@@ -146,7 +146,7 @@ class EvalSuite extends CatsSuite {
     }
 
     val deepV = deepVector(10000)
-    assert(replaceValues(deepV).isInstanceOf[Vector[Any]])
+    assert(replaceValues(deepV).value.isInstanceOf[Vector[Any]])
 
   }
 
