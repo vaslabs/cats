@@ -127,27 +127,31 @@ class EvalSuite extends CatsSuite {
         case v: Vector[Any] =>
           Eval.defer(replaceVectorValues(v))
         case _ =>
-         Eval.now("*")
+          Eval.now("*")
       }
     def replaceVectorValues(vector: Vector[Any]): Eval[Vector[Any]] =
       vector.foldM[Eval, Vector[Any]](Vector.empty[Any]) {
         case (replacedVector, obj) =>
-          Eval.later(replacedVector :+ replaceValues(obj))
+          replaceValues(obj).map(h => replacedVector :+ h)
       }
 
     def deepVector(depth: Int): Vector[Any] = {
       var i = depth
-      var v = Vector.empty[Any]
+      var v = Vector.apply[Any]("something")
       while (i >= 0) {
         i-=1
         v = Vector(v)
       }
       v
     }
-
+    def reachLastVectorValue(any: Any): Any = any match {
+      case v: Vector[Vector[Any]] =>
+        reachLastVectorValue(v(0))
+      case o =>
+        o
+    }
     val deepV = deepVector(10000)
-    assert(replaceValues(deepV).value.isInstanceOf[Vector[Any]])
-
+    assert(reachLastVectorValue(replaceValues(deepV).value) == "*")
   }
 
   {
