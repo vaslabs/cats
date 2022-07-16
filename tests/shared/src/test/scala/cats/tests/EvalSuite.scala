@@ -32,7 +32,7 @@ import org.scalacheck.{Arbitrary, Cogen, Gen}
 import org.scalacheck.Arbitrary.arbitrary
 
 import scala.annotation.tailrec
-import scala.math.{abs, min}
+import scala.math.min
 import cats.syntax.eq._
 import org.scalacheck.Prop._
 
